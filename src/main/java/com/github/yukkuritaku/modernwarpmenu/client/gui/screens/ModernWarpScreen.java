@@ -72,12 +72,23 @@ public class ModernWarpScreen extends CustomContainerScreen{
     private final Component originalTitle;
     protected long warpFailCoolDownExpiryTime;
     private long warpFailTooltipExpiryTime;
+    private boolean inMenu;
 
     public ModernWarpScreen(Menu warpMenu, ChestMenu menu, Inventory playerInventory, Layout layout) {
         super(menu, playerInventory, layout.backgroundTexture(), Component.empty());
         this.warpMenu = warpMenu;
         this.layout = layout;
-        this.chestInventory = (SimpleContainer)((ChestMenu)playerInventory.player.containerMenu).getContainer();
+        SimpleContainer tempChestInventory;
+        try {
+            tempChestInventory = (SimpleContainer)((ChestMenu)playerInventory.player.containerMenu).getContainer();
+            inMenu = true;
+        }
+        catch (ClassCastException e) {
+            tempChestInventory = (SimpleContainer) menu.getContainer();
+            inMenu = false;
+        }
+        this.chestInventory = tempChestInventory;
+
         if (SettingsManager.get().general.warpMenuEnabled) {
             /*
             Render a blank custom UI before buttons are enabled to prevent the vanilla chest UI from displaying
@@ -264,13 +275,15 @@ public class ModernWarpScreen extends CustomContainerScreen{
             return;
         }
         if (SettingsManager.get().general.showRegularWarpMenuButton) {
-            this.addRenderableWidget(new RegularWarpMenuButton(this.layout, this.window, this.grid, button -> {
-                if (SettingsManager.get().general.warpMenuEnabled) {
-                    SettingsManager.get().general.warpMenuEnabled = false;
-                    SettingsManager.save();
-                    setCustomUIState(false, false);
-                }
-            }, Supplier::get));
+            if (inMenu) {
+                this.addRenderableWidget(new RegularWarpMenuButton(this.layout, this.window, this.grid, button -> {
+                    if (SettingsManager.get().general.warpMenuEnabled) {
+                        SettingsManager.get().general.warpMenuEnabled = false;
+                        SettingsManager.save();
+                        setCustomUIState(false, false);
+                    }
+                }, Supplier::get));
+            }
         }
         /*
         Sometimes button initialization and visibility checks go wrong.

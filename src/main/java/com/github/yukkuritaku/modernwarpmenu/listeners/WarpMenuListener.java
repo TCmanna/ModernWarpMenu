@@ -16,6 +16,7 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.ContainerScreen;
+import net.minecraft.world.inventory.ChestMenu;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -41,13 +42,20 @@ public class WarpMenuListener {
             }
         });
         InputEvents.KEY_PRESSED.register((key, scanCode, action, modifiers) -> {
-            if (SettingsManager.get().general.warpMenuEnabled &&
-                    GameState.isOnSkyBlock() &&
-            ModernWarpMenu.getInstance().getKeyOpenWarpMenu().isDown() &&
-                    Util.getMillis() - this.lastWarpMenuHotkeyPress > HOTKEY_PRESS_DELAY){
-                this.lastWarpMenuHotkeyPress = Util.getMillis();
-                if (Minecraft.getInstance().player != null)
-                    Minecraft.getInstance().player.connection.sendCommand(SkyBlockConstants.WARP_COMMAND_BASE.substring(1));
+            if (GameState.isOnSkyBlock() && ModernWarpMenu.getInstance().getKeyOpenWarpMenu().isDown()) {
+                Minecraft minecraft = Minecraft.getInstance();
+                if (minecraft.player == null) return;
+                if (SettingsManager.get().general.warpMenuEnabled) {
+                    minecraft.setScreen(new FastTravelScreen(
+                            ChestMenu.sixRows(0, minecraft.player.getInventory()),
+                            Objects.requireNonNull(minecraft.player).getInventory(),
+                            ModernWarpMenuState.getOverworldLayout())
+                    );
+                }
+                else if (Util.getMillis() - this.lastWarpMenuHotkeyPress > HOTKEY_PRESS_DELAY) {
+                    this.lastWarpMenuHotkeyPress = Util.getMillis();
+                    minecraft.player.connection.sendCommand(SkyBlockConstants.WARP_COMMAND_BASE.substring(1));
+                }
             }
         });
         ScreenEvents.AFTER_INIT.register((minecraft, screen, scaledWidth, scaledHeight) -> {
