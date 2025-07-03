@@ -550,6 +550,12 @@
           "display_name": "Spawn",
           "grid_x": 11,
           "grid_y": 24
+        },
+        {
+          "command_name": "murkwater",
+          "display_name": "Murkwater",
+          "grid_x": 21,
+          "grid_y": 14
         }
       ],
       "width_percentage": 0.18,
